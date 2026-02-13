@@ -781,6 +781,9 @@ if (typeof global.process === 'undefined')
       this._errorAppender.clear();
       this.$errorBanner.hide();
 
+      // Clear last error for webMCP
+      this.lastError = null;
+
       // Reset worker if we want to bypass the cache
       if (this.options.bypassCache)
         this._stopExecutionForcefully();
@@ -860,6 +863,9 @@ if (typeof global.process === 'undefined')
       // Reset the UI
       this.$stop.hide();
       this.$start.show();
+
+      // Store last error for webMCP access
+      this.lastError = error;
 
       if (error && error.message) {
         this._errorAppender(error.message);

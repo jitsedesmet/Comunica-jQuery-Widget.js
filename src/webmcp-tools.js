@@ -84,13 +84,13 @@
         // Tool 2: Pick a date
         {
           name: 'set-datetime',
-          description: 'Set a specific date/time for temporal queries. This allows querying data as it existed at a particular point in time.',
+          description: 'Set a specific date/time for temporal queries. This allows you to specify the result of the SPARQL `NOW()` operator.',
           inputSchema: {
             type: 'object',
             properties: {
               datetime: {
                 type: 'string',
-                description: 'ISO 8601 date string (YYYY-MM-DD) for temporal queries',
+                description: 'ISO 8601 date string (YYYY-MM-DD)',
               },
             },
             required: ['datetime'],
@@ -129,14 +129,6 @@
               format: {
                 type: 'string',
                 description: 'Media type for CONSTRUCT results (e.g., "text/turtle", "application/n-triples", "application/ld+json", "application/trig")',
-                enum: [
-                  'application/trig',
-                  'text/turtle',
-                  'application/n-triples',
-                  'application/n-quads',
-                  'application/ld+json',
-                  'text/n3',
-                ],
               },
             },
             required: ['format'],
@@ -146,22 +138,16 @@
           },
         },
 
-        // Tool 5: Get shareable link
+        // Tool 5: List datasources
         {
-          name: 'get-shareable-link',
-          description: 'Generate a shareable URL for the current query configuration. The link can optionally execute the query automatically when opened.',
+          name: 'get-datasources-list',
+          description: 'Get the complete list of available datasources from settings.json. Returns all configured datasource names and URLs.',
           inputSchema: {
             type: 'object',
-            properties: {
-              executeOnLoad: {
-                type: 'boolean',
-                description: 'If true, the query will execute automatically when the link is opened. If false, it will just load the query setup.',
-              },
-            },
-            required: ['executeOnLoad'],
+            properties: {},
           },
-          execute: function ({ executeOnLoad }, agent) {
-            return self._executeTool('get-shareable-link', { executeOnLoad }, agent);
+          execute: function (params, agent) {
+            return self._executeTool('get-datasources-list', {}, agent);
           },
         },
 
@@ -237,7 +223,20 @@
           },
         },
 
-        // Tool 10: Get query status
+        // Tool 10: Get query errors
+        {
+          name: 'get-query-errors',
+          description: 'Get any errors from the most recent query execution. Use this to detect and fix query problems like syntax errors, missing prefixes, or invalid SPARQL syntax.',
+          inputSchema: {
+            type: 'object',
+            properties: {},
+          },
+          execute: function (params, agent) {
+            return self._executeTool('get-query-errors', {}, agent);
+          },
+        },
+
+        // Tool 11: Get query status
         {
           name: 'get-query-status',
           description: 'Check if a query is currently running and get basic status information.',
@@ -270,8 +269,8 @@
         case 'set-result-format':
           return this._setResultFormat(params.format, agent);
 
-        case 'get-shareable-link':
-          return this._getShareableLink(params.executeOnLoad, agent);
+        case 'get-datasources-list':
+          return this._getDatasourcesList(agent);
 
         case 'list-queries':
           return this._listQueries(params.datasource, agent);
@@ -284,6 +283,9 @@
 
         case 'get-query-results':
           return this._getQueryResults(params.maxResults || 100, agent);
+
+        case 'get-query-errors':
+          return this._getQueryErrors(agent);
 
         case 'get-query-status':
           return this._getQueryStatus(agent);
@@ -428,25 +430,35 @@
     },
 
     /**
-     * Tool implementation: Get shareable link
+     * Tool implementation: Get datasources list
      */
-    _getShareableLink: function (executeOnLoad, agent) {
-      const $executeOnLoad = this.queryUI.$executeOnLoad;
+    _getDatasourcesList: function (agent) {
+      const datasources = this.queryUI.options.datasources;
 
-      // Set executeOnLoad option
-      $executeOnLoad.prop('checked', executeOnLoad);
-      $executeOnLoad.trigger('change');
+      if (!datasources || datasources.length === 0) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: 'No datasources available.',
+            },
+          ],
+        };
+      }
 
-      // Get current URL (which includes the state in the hash)
-      const url = window.location.href;
+      // Build complete list of datasources
+      let text = 'Available datasources (' + datasources.length + ' total):\n\n';
+
+      datasources.forEach(function (ds, index) {
+        text += (index + 1) + '. ' + ds.name + '\n';
+        text += '   URL: ' + ds.url + '\n\n';
+      });
 
       return {
         content: [
           {
             type: 'text',
-            text: 'Shareable link: ' + url + '\n\n' +
-                  'This link ' + (executeOnLoad ? 'will' : 'will not') + ' execute the query automatically when opened.' + '\n' +
-                  'It includes the current query, datasources, and all settings.',
+            text: text,
           },
         ],
       };
@@ -683,6 +695,42 @@
       else
         text = 'Query completed with unknown result type: ' + queryType;
 
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: text,
+          },
+        ],
+      };
+    },
+
+    /**
+     * Tool implementation: Get query errors
+     */
+    _getQueryErrors: function (agent) {
+      const lastError = this.queryUI.lastError;
+
+      if (!lastError) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: 'No errors detected. The last query executed successfully or no query has been executed yet.',
+            },
+          ],
+        };
+      }
+
+      let text = 'Query execution error detected:\n\n';
+      text += 'Error: ' + (lastError.message || lastError.toString()) + '\n\n';
+      text += 'Common causes:\n';
+      text += '- Missing SPARQL prefixes (e.g., PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>)\n';
+      text += '- Syntax errors in the SPARQL query\n';
+      text += '- Invalid URIs or property names\n';
+      text += '- Incorrect datasource configuration\n\n';
+      text += 'Please review the query syntax and try again. You can insert a corrected query using the insert-query tool.';
 
       return {
         content: [
