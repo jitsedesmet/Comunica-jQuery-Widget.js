@@ -2,19 +2,16 @@
 // WebMCP (Model Context Protocol) tools for Comunica Query UI
 // Enables AI agents to interact with the SPARQL query interface
 
+// WebMCP Tools Manager
+// Provides tools for AI agents to interact with the Comunica query interface
 (function (exports) {
-  'use strict';
-
-  /**
-   * WebMCP Tools Manager
-   * Provides tools for AI agents to interact with the Comunica query interface
-   */
   function WebMCPTools(queryUI) {
     this.queryUI = queryUI;
     this.toolsRegistered = false;
   }
 
   WebMCPTools.prototype = {
+
     /**
      * Check if WebMCP is available in the browser
      */
@@ -29,6 +26,7 @@
      */
     registerTools: function () {
       if (!this.isAvailable()) {
+        // eslint-disable-next-line no-console
         console.log('WebMCP not available in this browser');
         return false;
       }
@@ -37,16 +35,19 @@
         const tools = this._buildToolDefinitions();
         window.navigator.modelContext.provideContext({ tools: tools });
         this.toolsRegistered = true;
+        // eslint-disable-next-line no-console
         console.log('WebMCP tools registered successfully:', tools.length, 'tools');
-        
+
         // Show visual indicator
         const statusElement = document.getElementById('webmcp-status');
-        if (statusElement) {
+        if (statusElement)
           statusElement.style.display = 'block';
-        }
-        
+
+
         return true;
-      } catch (error) {
+      }
+      catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to register WebMCP tools:', error);
         return false;
       }
@@ -57,7 +58,7 @@
      */
     _buildToolDefinitions: function () {
       const self = this;
-      
+
       return [
         // Tool 1: Change datasources
         {
@@ -69,14 +70,14 @@
               datasources: {
                 type: 'array',
                 items: { type: 'string' },
-                description: 'Array of datasource names or URLs to query. Use datasource names from the available list or provide custom URLs.'
-              }
+                description: 'Array of datasource names or URLs to query. Use datasource names from the available list or provide custom URLs.',
+              },
             },
-            required: ['datasources']
+            required: ['datasources'],
           },
           execute: function ({ datasources }, agent) {
             return self._executeTool('change-datasources', { datasources }, agent);
-          }
+          },
         },
 
         // Tool 2: Pick a date
@@ -88,14 +89,14 @@
             properties: {
               datetime: {
                 type: 'string',
-                description: 'ISO 8601 date string (YYYY-MM-DD) for temporal queries'
-              }
+                description: 'ISO 8601 date string (YYYY-MM-DD) for temporal queries',
+              },
             },
-            required: ['datetime']
+            required: ['datetime'],
           },
           execute: function ({ datetime }, agent) {
             return self._executeTool('set-datetime', { datetime }, agent);
-          }
+          },
         },
 
         // Tool 3: Set bypass cache
@@ -107,14 +108,14 @@
             properties: {
               bypass: {
                 type: 'boolean',
-                description: 'Set to true to bypass cache, false to use cached results'
-              }
+                description: 'Set to true to bypass cache, false to use cached results',
+              },
             },
-            required: ['bypass']
+            required: ['bypass'],
           },
           execute: function ({ bypass }, agent) {
             return self._executeTool('set-bypass-cache', { bypass }, agent);
-          }
+          },
         },
 
         // Tool 4: Change CONSTRUCT format
@@ -133,15 +134,15 @@
                   'application/n-triples',
                   'application/n-quads',
                   'application/ld+json',
-                  'text/n3'
-                ]
-              }
+                  'text/n3',
+                ],
+              },
             },
-            required: ['format']
+            required: ['format'],
           },
           execute: function ({ format }, agent) {
             return self._executeTool('set-result-format', { format }, agent);
-          }
+          },
         },
 
         // Tool 5: Get shareable link
@@ -153,14 +154,14 @@
             properties: {
               executeOnLoad: {
                 type: 'boolean',
-                description: 'If true, the query will execute automatically when the link is opened. If false, it will just load the query setup.'
-              }
+                description: 'If true, the query will execute automatically when the link is opened. If false, it will just load the query setup.',
+              },
             },
-            required: ['executeOnLoad']
+            required: ['executeOnLoad'],
           },
           execute: function ({ executeOnLoad }, agent) {
             return self._executeTool('get-shareable-link', { executeOnLoad }, agent);
-          }
+          },
         },
 
         // Tool 6: List and explain queries
@@ -172,13 +173,13 @@
             properties: {
               datasource: {
                 type: 'string',
-                description: 'Optional: Filter queries by datasource name (e.g., "dbpedia", "wikidata")'
-              }
-            }
+                description: 'Optional: Filter queries by datasource name (e.g., "dbpedia", "wikidata")',
+              },
+            },
           },
           execute: function ({ datasource }, agent) {
             return self._executeTool('list-queries', { datasource }, agent);
-          }
+          },
         },
 
         // Tool 7: Insert query
@@ -190,18 +191,18 @@
             properties: {
               query: {
                 type: 'string',
-                description: 'The SPARQL query to insert into the editor'
+                description: 'The SPARQL query to insert into the editor',
               },
               suggestDatasources: {
                 type: 'boolean',
-                description: 'If true, suggest appropriate datasources for this query'
-              }
+                description: 'If true, suggest appropriate datasources for this query',
+              },
             },
-            required: ['query']
+            required: ['query'],
           },
           execute: function ({ query, suggestDatasources }, agent) {
             return self._executeTool('insert-query', { query, suggestDatasources }, agent);
-          }
+          },
         },
 
         // Tool 8: Execute query
@@ -210,11 +211,11 @@
           description: 'Execute the current SPARQL query. Make sure datasources are configured before executing.',
           inputSchema: {
             type: 'object',
-            properties: {}
+            properties: {},
           },
           execute: function (params, agent) {
             return self._executeTool('execute-query', {}, agent);
-          }
+          },
         },
 
         // Tool 9: Get query results
@@ -226,13 +227,13 @@
             properties: {
               maxResults: {
                 type: 'number',
-                description: 'Maximum number of results to return (default: 100, max: 1000)'
-              }
-            }
+                description: 'Maximum number of results to return (default: 100, max: 1000)',
+              },
+            },
           },
           execute: function ({ maxResults }, agent) {
             return self._executeTool('get-query-results', { maxResults }, agent);
-          }
+          },
         },
 
         // Tool 10: Get query status
@@ -241,12 +242,12 @@
           description: 'Check if a query is currently running and get basic status information.',
           inputSchema: {
             type: 'object',
-            properties: {}
+            properties: {},
           },
           execute: function (params, agent) {
             return self._executeTool('get-query-status', {}, agent);
-          }
-        }
+          },
+        },
       ];
     },
 
@@ -256,48 +257,49 @@
     _executeTool: function (toolName, params, agent) {
       try {
         switch (toolName) {
-          case 'change-datasources':
-            return this._changeDatasources(params.datasources, agent);
-          
-          case 'set-datetime':
-            return this._setDatetime(params.datetime, agent);
-          
-          case 'set-bypass-cache':
-            return this._setBypassCache(params.bypass, agent);
-          
-          case 'set-result-format':
-            return this._setResultFormat(params.format, agent);
-          
-          case 'get-shareable-link':
-            return this._getShareableLink(params.executeOnLoad, agent);
-          
-          case 'list-queries':
-            return this._listQueries(params.datasource, agent);
-          
-          case 'insert-query':
-            return this._insertQuery(params.query, params.suggestDatasources, agent);
-          
-          case 'execute-query':
-            return this._executeQuery(agent);
-          
-          case 'get-query-results':
-            return this._getQueryResults(params.maxResults || 100, agent);
-          
-          case 'get-query-status':
-            return this._getQueryStatus(agent);
-          
-          default:
-            throw new Error('Unknown tool: ' + toolName);
+        case 'change-datasources':
+          return this._changeDatasources(params.datasources, agent);
+
+        case 'set-datetime':
+          return this._setDatetime(params.datetime, agent);
+
+        case 'set-bypass-cache':
+          return this._setBypassCache(params.bypass, agent);
+
+        case 'set-result-format':
+          return this._setResultFormat(params.format, agent);
+
+        case 'get-shareable-link':
+          return this._getShareableLink(params.executeOnLoad, agent);
+
+        case 'list-queries':
+          return this._listQueries(params.datasource, agent);
+
+        case 'insert-query':
+          return this._insertQuery(params.query, params.suggestDatasources, agent);
+
+        case 'execute-query':
+          return this._executeQuery(agent);
+
+        case 'get-query-results':
+          return this._getQueryResults(params.maxResults || 100, agent);
+
+        case 'get-query-status':
+          return this._getQueryStatus(agent);
+
+        default:
+          throw new Error('Unknown tool: ' + toolName);
         }
-      } catch (error) {
+      }
+      catch (error) {
         return {
           content: [
             {
               type: 'text',
-              text: 'Error executing tool ' + toolName + ': ' + error.message
-            }
+              text: 'Error executing tool ' + toolName + ': ' + error.message,
+            },
           ],
-          isError: true
+          isError: true,
         };
       }
     },
@@ -308,47 +310,46 @@
     _changeDatasources: function (datasources, agent) {
       const availableDS = this.queryUI.options.datasources;
       const $datasources = this.queryUI.$datasources;
-      
+
       // Map datasource names to URLs
       const selectedUrls = [];
       const notFound = [];
-      
+
       datasources.forEach(function (ds) {
         // Check if it's a URL (contains ://)
-        if (ds.indexOf('://') !== -1 || ds.indexOf('//') === 0) {
+        if (ds.indexOf('://') !== -1 || ds.indexOf('//') === 0)
           selectedUrls.push(ds);
-        } else {
+        else {
           // Try to find by name
           const found = availableDS.find(function (availDS) {
             return availDS.name.toLowerCase() === ds.toLowerCase();
           });
-          
-          if (found) {
+
+          if (found)
             selectedUrls.push(found.url);
-          } else {
+          else
             notFound.push(ds);
-          }
         }
       });
-      
+
       // Update the UI
       $datasources.val(selectedUrls);
       $datasources.trigger('chosen:updated');
       $datasources.trigger('change');
-      
+
       let message = 'Changed datasources to: ' + selectedUrls.join(', ');
       if (notFound.length > 0) {
         message += '\n\nNote: Could not find these datasources: ' + notFound.join(', ');
-        message += '\n\nAvailable datasources: ' + availableDS.map(function(ds) { return ds.name; }).join(', ');
+        message += '\n\nAvailable datasources: ' + availableDS.map(function (ds) { return ds.name; }).join(', ');
       }
-      
+
       return {
         content: [
           {
             type: 'text',
-            text: message
-          }
-        ]
+            text: message,
+          },
+        ],
       };
     },
 
@@ -359,14 +360,14 @@
       const $datetime = this.queryUI.$datetime;
       $datetime.val(datetime);
       $datetime.trigger('change');
-      
+
       return {
         content: [
           {
             type: 'text',
-            text: 'Set temporal query date to: ' + datetime
-          }
-        ]
+            text: 'Set temporal query date to: ' + datetime,
+          },
+        ],
       };
     },
 
@@ -377,15 +378,15 @@
       const $bypassCache = this.queryUI.$bypassCache;
       $bypassCache.prop('checked', bypass);
       $bypassCache.trigger('change');
-      
+
       return {
         content: [
           {
             type: 'text',
             text: 'Cache bypass ' + (bypass ? 'enabled' : 'disabled') + '. ' +
-                  (bypass ? 'Queries will fetch fresh data.' : 'Queries will use cached results when available.')
-          }
-        ]
+                  (bypass ? 'Queries will fetch fresh data.' : 'Queries will use cached results when available.'),
+          },
+        ],
       };
     },
 
@@ -394,34 +395,34 @@
      */
     _setResultFormat: function (format, agent) {
       const $resultMediaType = this.queryUI.$resultMediaType;
-      
+
       // Check if format is available
-      const available = Array.from($resultMediaType[0].options).map(function(opt) {
+      const available = Array.from($resultMediaType[0].options).map(function (opt) {
         return opt.value;
       });
-      
+
       if (available.indexOf(format) === -1) {
         return {
           content: [
             {
               type: 'text',
-              text: 'Format "' + format + '" is not available. Available formats: ' + available.join(', ')
-            }
+              text: 'Format "' + format + '" is not available. Available formats: ' + available.join(', '),
+            },
           ],
-          isError: true
+          isError: true,
         };
       }
-      
+
       $resultMediaType.val(format);
       $resultMediaType.trigger('change');
-      
+
       return {
         content: [
           {
             type: 'text',
-            text: 'Changed CONSTRUCT query output format to: ' + format
-          }
-        ]
+            text: 'Changed CONSTRUCT query output format to: ' + format,
+          },
+        ],
       };
     },
 
@@ -430,23 +431,23 @@
      */
     _getShareableLink: function (executeOnLoad, agent) {
       const $executeOnLoad = this.queryUI.$executeOnLoad;
-      
+
       // Set executeOnLoad option
       $executeOnLoad.prop('checked', executeOnLoad);
       $executeOnLoad.trigger('change');
-      
+
       // Get current URL (which includes the state in the hash)
       const url = window.location.href;
-      
+
       return {
         content: [
           {
             type: 'text',
             text: 'Shareable link: ' + url + '\n\n' +
                   'This link ' + (executeOnLoad ? 'WILL' : 'will NOT') + ' execute the query automatically when opened.' + '\n' +
-                  'It includes the current query, datasources, and all settings.'
-          }
-        ]
+                  'It includes the current query, datasources, and all settings.',
+          },
+        ],
       };
     },
 
@@ -455,7 +456,7 @@
      */
     _listQueries: function (datasource, agent) {
       const queries = this.queryUI.options.queries;
-      
+
       // Filter by datasource if specified
       let filteredQueries = queries;
       if (datasource) {
@@ -464,49 +465,48 @@
           return q.datasource && q.datasource.toLowerCase().indexOf(dsLower) !== -1;
         });
       }
-      
+
       if (filteredQueries.length === 0) {
         return {
           content: [
             {
               type: 'text',
-              text: datasource ? 
-                    'No queries found for datasource: ' + datasource :
-                    'No queries available.'
-            }
-          ]
+              text: datasource ?
+                'No queries found for datasource: ' + datasource :
+                'No queries available.',
+            },
+          ],
         };
       }
-      
+
       // Build query list with explanations
       let text = 'Available queries' + (datasource ? ' for ' + datasource : '') + ':\n\n';
-      
+
       filteredQueries.forEach(function (query, index) {
         text += (index + 1) + '. ' + query.name + '\n';
-        if (query.datasource) {
+        if (query.datasource)
           text += '   Datasource: ' + query.datasource + '\n';
-        }
-        
+
+
         // Try to extract a description from the query
         if (query.sparql) {
           const lines = query.sparql.split('\n');
           const commentLines = lines.filter(function (line) {
             return line.trim().startsWith('#');
           });
-          if (commentLines.length > 0) {
+          if (commentLines.length > 0)
             text += '   Description: ' + commentLines[0].replace(/^#\s*/, '').trim() + '\n';
-          }
         }
         text += '\n';
       });
-      
+
       return {
         content: [
           {
             type: 'text',
-            text: text
-          }
-        ]
+            text: text,
+          },
+        ],
       };
     },
 
@@ -514,53 +514,51 @@
      * Tool implementation: Insert query
      */
     _insertQuery: function (query, suggestDatasources, agent) {
-      const self = this;
-      
       // Set the query text - use the current query format's text area
       const queryFormat = this.queryUI.options.queryFormat || 'sparql';
       const $queryText = this.queryUI.$queryTextsIndexed[queryFormat];
-      
+
       if ($queryText) {
-        if ($queryText.yasqe) {
+        if ($queryText.yasqe)
           $queryText.yasqe.setValue(query);
-        } else {
+        else {
           $queryText.val(query);
           $queryText.trigger('change');
         }
       }
-      
+
       let message = 'Query inserted into editor:\n\n' + query;
-      
+
       // Suggest datasources if requested
       if (suggestDatasources) {
         // Simple heuristic: look for common datasource patterns
         const suggestions = [];
-        
-        if (query.toLowerCase().indexOf('dbpedia') !== -1) {
+
+        if (query.toLowerCase().indexOf('dbpedia') !== -1)
           suggestions.push('DBpedia SPARQL');
-        }
-        if (query.toLowerCase().indexOf('wikidata') !== -1 || query.toLowerCase().indexOf('wdt:') !== -1) {
+
+        if (query.toLowerCase().indexOf('wikidata') !== -1 || query.toLowerCase().indexOf('wdt:') !== -1)
           suggestions.push('Wikidata SPARQL');
-        }
-        if (query.toLowerCase().indexOf('foaf') !== -1 || query.toLowerCase().indexOf('solid') !== -1) {
+
+        if (query.toLowerCase().indexOf('foaf') !== -1 || query.toLowerCase().indexOf('solid') !== -1)
           suggestions.push('A personal Solid pod URL');
-        }
-        
+
+
         if (suggestions.length > 0) {
           message += '\n\nSuggested datasources for this query: ' + suggestions.join(', ');
           message += '\nUse the change-datasources tool to set them.';
-        } else {
-          message += '\n\nNo specific datasources suggested. You may need to configure appropriate datasources for this query.';
         }
+        else
+          message += '\n\nNo specific datasources suggested. You may need to configure appropriate datasources for this query.';
       }
-      
+
       return {
         content: [
           {
             type: 'text',
-            text: message
-          }
-        ]
+            text: message,
+          },
+        ],
       };
     },
 
@@ -575,48 +573,47 @@
           content: [
             {
               type: 'text',
-              text: 'Error: No datasources selected. Please select or add datasources before executing the query.'
-            }
+              text: 'Error: No datasources selected. Please select or add datasources before executing the query.',
+            },
           ],
-          isError: true
+          isError: true,
         };
       }
-      
+
       // Check if a query is present
       const queryFormat = this.queryUI.options.queryFormat || 'sparql';
       const $queryText = this.queryUI.$queryTextsIndexed[queryFormat];
-      
+
       let query = '';
       if ($queryText) {
-        if ($queryText.yasqe) {
+        if ($queryText.yasqe)
           query = $queryText.yasqe.getValue();
-        } else {
+        else
           query = $queryText.val();
-        }
       }
-      
+
       if (!query || query.trim().length === 0) {
         return {
           content: [
             {
               type: 'text',
-              text: 'Error: No query to execute. Please insert a query first.'
-            }
+              text: 'Error: No query to execute. Please insert a query first.',
+            },
           ],
-          isError: true
+          isError: true,
         };
       }
-      
+
       // Trigger execution
       this.queryUI.$start.click();
-      
+
       return {
         content: [
           {
             type: 'text',
-            text: 'Query execution started. Use get-query-results to retrieve results once the query completes.'
-          }
-        ]
+            text: 'Query execution started. Use get-query-results to retrieve results once the query completes.',
+          },
+        ],
       };
     },
 
@@ -625,72 +622,74 @@
      */
     _getQueryResults: function (maxResults, agent) {
       const self = this;
-      
+
       // Check if results are available
       if (!this.queryUI.lastResults) {
         return {
           content: [
             {
               type: 'text',
-              text: 'No query results available. Execute a query first using the execute-query tool.'
-            }
-          ]
+              text: 'No query results available. Execute a query first using the execute-query tool.',
+            },
+          ],
         };
       }
-      
+
       const results = this.queryUI.lastResults;
       const queryType = this.queryUI.lastQueryType;
-      
+
       // Build response based on query type
       let text = '';
-      
+
       if (queryType === 'bindings') {
         // SELECT query results
         const variables = results.variables || [];
         const bindings = results.bindings || [];
-        
+
         const count = Math.min(bindings.length, maxResults);
-        
+
         text = 'Query returned ' + bindings.length + ' result(s)';
-        if (count < bindings.length) {
+        if (count < bindings.length)
           text += ' (showing first ' + count + ')';
-        }
+
         text += ':\n\n';
-        
+
         text += 'Variables: ' + variables.join(', ') + '\n\n';
-        
+
         // Format results as table
         for (let i = 0; i < count; i++) {
           text += 'Result ' + (i + 1) + ':\n';
           const binding = bindings[i];
-          
+
           variables.forEach(function (v) {
-            if (binding[v]) {
+            if (binding[v])
               text += '  ' + v + ': ' + self._formatValue(binding[v]) + '\n';
-            }
           });
           text += '\n';
         }
-      } else if (queryType === 'boolean') {
+      }
+      else if (queryType === 'boolean') {
         // ASK query result
         text = 'Query result (ASK): ' + (results.value ? 'TRUE' : 'FALSE');
-      } else if (queryType === 'quads') {
+      }
+      else if (queryType === 'quads') {
         // CONSTRUCT/DESCRIBE query result
         text = 'Query returned RDF quads (CONSTRUCT/DESCRIBE query).\n';
         text += 'Total quads: ' + (results.quads ? results.quads.length : 0);
-      } else if (queryType === 'void') {
-        text = 'Query completed successfully (UPDATE query).';
-      } else {
-        text = 'Query completed with unknown result type: ' + queryType;
       }
-      
+      else if (queryType === 'void')
+        text = 'Query completed successfully (UPDATE query).';
+      else
+        text = 'Query completed with unknown result type: ' + queryType;
+
+
       return {
         content: [
           {
             type: 'text',
-            text: text
-          }
-        ]
+            text: text,
+          },
+        ],
       };
     },
 
@@ -700,27 +699,26 @@
     _getQueryStatus: function (agent) {
       const isRunning = this.queryUI.$start.is(':hidden');
       const executionTime = this.queryUI.$timing.text();
-      
+
       let text = '';
       if (isRunning) {
         text = 'Query is currently running.';
-        if (executionTime) {
+        if (executionTime)
           text += ' Execution time: ' + executionTime;
-        }
-      } else {
-        text = 'No query is currently running.';
-        if (executionTime) {
-          text += ' Last query execution time: ' + executionTime;
-        }
       }
-      
+      else {
+        text = 'No query is currently running.';
+        if (executionTime)
+          text += ' Last query execution time: ' + executionTime;
+      }
+
       return {
         content: [
           {
             type: 'text',
-            text: text
-          }
-        ]
+            text: text,
+          },
+        ],
       };
     },
 
@@ -729,33 +727,32 @@
      */
     _formatValue: function (value) {
       if (!value) return '';
-      
-      if (value.type === 'uri') {
+
+      if (value.type === 'uri')
         return '<' + value.value + '>';
-      } else if (value.type === 'literal') {
+      else if (value.type === 'literal') {
         let result = '"' + value.value + '"';
-        if (value.datatype && value.datatype !== 'http://www.w3.org/2001/XMLSchema#string') {
+        if (value.datatype && value.datatype !== 'http://www.w3.org/2001/XMLSchema#string')
           result += '^^<' + value.datatype + '>';
-        }
-        if (value['xml:lang']) {
+
+        if (value['xml:lang'])
           result += '@' + value['xml:lang'];
-        }
+
         return result;
-      } else if (value.type === 'bnode') {
-        return '_:' + value.value;
       }
-      
+      else if (value.type === 'bnode')
+        return '_:' + value.value;
+
+
       return value.value;
-    }
+    },
   };
 
   // Export for use in other modules
-  if (typeof module !== 'undefined' && module.exports) {
+  if (typeof module !== 'undefined' && module.exports)
     module.exports = WebMCPTools;
-  } else if (typeof exports !== 'undefined') {
+  else if (typeof exports !== 'undefined')
     exports.WebMCPTools = WebMCPTools;
-  } else if (typeof window !== 'undefined') {
+  else if (typeof window !== 'undefined')
     window.WebMCPTools = WebMCPTools;
-  }
-
 })(typeof exports !== 'undefined' ? exports : this);

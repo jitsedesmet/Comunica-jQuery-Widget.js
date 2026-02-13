@@ -83,7 +83,7 @@ if (typeof global.process === 'undefined')
 
     // Initialize WebMCP tools
     this.webMCPTools = new WebMCPTools(this);
-    
+
     // Store query results for webMCP access
     this.lastResults = null;
     this.lastQueryType = null;
@@ -641,11 +641,10 @@ if (typeof global.process === 'undefined')
           for (var key in settings)
             self._setOption(key, settings[key]);
           self.element.trigger('settingsUpdated');
-          
+
           // Register WebMCP tools after settings are loaded
-          if (self.webMCPTools) {
+          if (self.webMCPTools)
             self.webMCPTools.registerTools();
-          }
         });
         break;
       }
@@ -894,31 +893,34 @@ if (typeof global.process === 'undefined')
     // Initializes the result display, depending on the query type
     _initResults: function (queryType) {
       var resultAppender = this._resultAppender;
-      
+
       // Store query type for webMCP
       this.lastQueryType = queryType;
-      
+
       // Initialize results storage for webMCP
       this.lastResults = null;
       if (queryType === 'bindings') {
         this.lastResults = {
           variables: [],
-          bindings: []
-        };
-      } else if (queryType === 'quads') {
-        this.lastResults = {
-          quads: []
-        };
-      } else if (queryType === 'boolean') {
-        this.lastResults = {
-          value: null
-        };
-      } else if (queryType === 'void') {
-        this.lastResults = {
-          completed: true
+          bindings: [],
         };
       }
-      
+      else if (queryType === 'quads') {
+        this.lastResults = {
+          quads: [],
+        };
+      }
+      else if (queryType === 'boolean') {
+        this.lastResults = {
+          value: null,
+        };
+      }
+      else if (queryType === 'void') {
+        this.lastResults = {
+          completed: true,
+        };
+      }
+
       switch (queryType) {
       // For SELECT queries, add the rows to the result
       case 'bindings':
@@ -961,16 +963,17 @@ if (typeof global.process === 'undefined')
         // Store results for webMCP
         if (this.lastQueryType === 'bindings' && this.lastResults) {
           // Extract variables from the first result
-          if (this.lastResults.variables.length === 0 && result) {
+          if (this.lastResults.variables.length === 0 && result)
             this.lastResults.variables = Object.keys(result);
-          }
+
           // Store binding
           this.lastResults.bindings.push(result);
-        } else if (this.lastQueryType === 'quads' && this.lastResults) {
-          this.lastResults.quads.push(result);
-        } else if (this.lastQueryType === 'boolean' && this.lastResults) {
-          this.lastResults.value = result;
         }
+        else if (this.lastQueryType === 'quads' && this.lastResults)
+          this.lastResults.quads.push(result);
+        else if (this.lastQueryType === 'boolean' && this.lastResults)
+          this.lastResults.value = result;
+
 
         if (this.map)
           this._handleGeospatialResult(result);

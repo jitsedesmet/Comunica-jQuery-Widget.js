@@ -12,6 +12,29 @@ It allows users to execute SPARQL queries over one or multiple heterogeneous int
 
 The `@comunica/web-client-generator` allows this widget to be generated for any Comunica configuration.
 
+## WebMCP Support
+
+This widget now includes **WebMCP (Model Context Protocol)** support, enabling AI agents to interact with the query interface programmatically. When accessed in a browser that supports WebMCP (such as browsers with AI assistants), agents can:
+
+- **Change datasources** - Select or add custom SPARQL endpoints and data sources
+- **Configure temporal queries** - Set specific dates for temporal data access
+- **Manage caching** - Enable or disable cache bypassing for fresh results
+- **Control output formats** - Change RDF serialization formats for CONSTRUCT queries
+- **Generate shareable links** - Create URLs with configurable auto-execution
+- **Browse example queries** - List and explain pre-configured SPARQL queries
+- **Insert custom queries** - Generate and insert SPARQL queries from natural language
+- **Execute queries** - Trigger query execution programmatically
+- **Retrieve results** - Access query results with structured interpretation
+- **Monitor status** - Check query execution status and timing
+
+For example, an AI agent can handle complex tasks like: *"What are the movies starring both Brad Pitt and Leonardo DiCaprio?"* by automatically:
+1. Suggesting an appropriate SPARQL query
+2. Recommending suitable datasources (e.g., DBpedia, Wikidata)
+3. Executing the query
+4. Interpreting and explaining the results in natural language
+
+WebMCP tools are automatically registered when the application loads in a compatible browser. The availability is indicated in the page header.
+
 ## Installation
 
 This tool requires [Node.JS](http://nodejs.org/) 10.0 or higher and is tested on OSX and Linux.
