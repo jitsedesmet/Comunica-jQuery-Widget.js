@@ -16,14 +16,15 @@ The `@comunica/web-client-generator` allows this widget to be generated for any 
 
 This widget now includes **[WebMCP (Web Model Context Protocol)](https://github.com/webmachinelearning/webmcp)** support, a web-based implementation of the Model Context Protocol that enables AI agents to interact with web applications programmatically. When accessed in a browser that supports WebMCP (such as browsers with AI assistants), agents can:
 
+- **List datasources** - Get complete list of available SPARQL endpoints and data sources
 - **Change datasources** - Select or add custom SPARQL endpoints and data sources
-- **Configure temporal queries** - Set specific dates for temporal data access
+- **Configure temporal queries** - Set specific dates to control SPARQL NOW() operator
 - **Manage caching** - Enable or disable cache bypassing for fresh results
 - **Control output formats** - Change RDF serialization formats for CONSTRUCT queries
-- **Generate shareable links** - Create URLs with configurable auto-execution
 - **Browse example queries** - List and explain pre-configured SPARQL queries
 - **Insert custom queries** - Generate and insert SPARQL queries from natural language
 - **Execute queries** - Trigger query execution programmatically
+- **Detect errors** - Get detailed error messages for failed queries to help fix mistakes
 - **Retrieve results** - Access query results with structured interpretation
 - **Monitor status** - Check query execution status and timing
 
@@ -31,7 +32,8 @@ For example, an AI agent can handle complex tasks like: *"What are the movies st
 1. Suggesting an appropriate SPARQL query
 2. Recommending suitable datasources (e.g., DBpedia, Wikidata)
 3. Executing the query
-4. Interpreting and explaining the results in natural language
+4. Detecting and fixing any errors (like missing prefixes)
+5. Interpreting and explaining the results in natural language
 
 ### Example Agent Workflow
 
@@ -41,7 +43,9 @@ Here's a detailed example of how an AI agent would use the WebMCP tools:
 User: "Find movies starring both Brad Pitt and Leonardo DiCaprio using DBpedia"
 
 Agent actions:
-1. insert-query - Insert SPARQL query:
+1. get-datasources-list - View all available datasources
+
+2. insert-query - Insert SPARQL query:
    SELECT ?movie ?title WHERE {
      ?movie dbpedia-owl:starring dbpedia:Brad_Pitt ;
             dbpedia-owl:starring dbpedia:Leonardo_DiCaprio ;
@@ -49,13 +53,16 @@ Agent actions:
      FILTER (lang(?title) = 'en')
    }
 
-2. change-datasources - Set datasources: ["DBpedia SPARQL"]
+3. change-datasources - Set datasources: ["DBpedia SPARQL"]
 
-3. execute-query - Start query execution
+4. execute-query - Start query execution
 
-4. get-query-results - Retrieve results (returns structured data)
+5. get-query-errors - Check for errors (e.g., missing prefixes)
+   If errors found, fix and retry with corrected query
 
-5. Agent interprets results and responds:
+6. get-query-results - Retrieve results (returns structured data)
+
+7. Agent interprets results and responds:
    "I found X movies starring both actors: [list of movie titles]"
 ```
 
