@@ -33,6 +33,32 @@ For example, an AI agent can handle complex tasks like: *"What are the movies st
 3. Executing the query
 4. Interpreting and explaining the results in natural language
 
+### Example Agent Workflow
+
+Here's a detailed example of how an AI agent would use the WebMCP tools:
+
+```
+User: "Find movies starring both Brad Pitt and Leonardo DiCaprio using DBpedia"
+
+Agent actions:
+1. insert-query - Insert SPARQL query:
+   SELECT ?movie ?title WHERE {
+     ?movie dbpedia-owl:starring dbpedia:Brad_Pitt ;
+            dbpedia-owl:starring dbpedia:Leonardo_DiCaprio ;
+            rdfs:label ?title .
+     FILTER (lang(?title) = 'en')
+   }
+
+2. change-datasources - Set datasources: ["DBpedia SPARQL"]
+
+3. execute-query - Start query execution
+
+4. get-query-results - Retrieve results (returns structured data)
+
+5. Agent interprets results and responds:
+   "I found X movies starring both actors: [list of movie titles]"
+```
+
 WebMCP tools are automatically registered when the application loads in a compatible browser. The availability is indicated in the page header.
 
 ## Installation
