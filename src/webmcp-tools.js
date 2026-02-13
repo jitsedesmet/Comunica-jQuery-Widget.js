@@ -1,5 +1,6 @@
 /*! @license MIT ©2024 Ghent University – imec */
-// WebMCP (Model Context Protocol) tools for Comunica Query UI
+// WebMCP (Web Model Context Protocol) tools for Comunica Query UI
+// See: https://github.com/webmachinelearning/webmcp
 // Enables AI agents to interact with the SPARQL query interface
 
 // WebMCP Tools Manager
@@ -444,7 +445,7 @@
           {
             type: 'text',
             text: 'Shareable link: ' + url + '\n\n' +
-                  'This link ' + (executeOnLoad ? 'WILL' : 'will NOT') + ' execute the query automatically when opened.' + '\n' +
+                  'This link ' + (executeOnLoad ? 'will' : 'will not') + ' execute the query automatically when opened.' + '\n' +
                   'It includes the current query, datasources, and all settings.',
           },
         ],

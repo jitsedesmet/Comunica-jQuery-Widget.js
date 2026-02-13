@@ -14,7 +14,7 @@ The `@comunica/web-client-generator` allows this widget to be generated for any 
 
 ## WebMCP Support
 
-This widget now includes **WebMCP (Model Context Protocol)** support, enabling AI agents to interact with the query interface programmatically. When accessed in a browser that supports WebMCP (such as browsers with AI assistants), agents can:
+This widget now includes **[WebMCP (Web Model Context Protocol)](https://github.com/webmachinelearning/webmcp)** support, a web-based implementation of the Model Context Protocol that enables AI agents to interact with web applications programmatically. When accessed in a browser that supports WebMCP (such as browsers with AI assistants), agents can:
 
 - **Change datasources** - Select or add custom SPARQL endpoints and data sources
 - **Configure temporal queries** - Set specific dates for temporal data access
