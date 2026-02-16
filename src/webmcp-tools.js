@@ -238,7 +238,7 @@ If an error is detected, fix the query and try again.\
           name: 'get-query-results',
           description: `
 Get the results from the most recent query execution.
-These can be used if the agent is tasked to explain the query result.
+If there are any errors from the query execution, they will be returned instead of results.
 Results have a structured format. But the triples send are limited for bandwidth reasons.
 `.trim(),
           inputSchema: {
@@ -254,22 +254,8 @@ Results have a structured format. But the triples send are limited for bandwidth
             return self._executeTool('get-query-results', { maxResults }, agent);
           },
         },
-        // Tool 10: Get query errors
-        {
-          name: 'get-query-errors',
-          description: `
-Get any errors from the most recent query execution.
-Use this to detect and fix query problems like syntax errors, missing prefixes, or invalid SPARQL syntax.
-`.trim(),
-          inputSchema: {
-            type: 'object',
-            properties: {},
-          },
-          execute: function (params, agent) {
-            return self._executeTool('get-query-errors', {}, agent);
-          },
-        },
-        // Tool 11: Get query status
+
+        // Tool 10: Get query status
         {
           name: 'get-query-status',
           description: 'Check if a query is currently running and get basic status information.',
@@ -316,9 +302,6 @@ Use this to detect and fix query problems like syntax errors, missing prefixes, 
 
         case 'get-query-results':
           return this._getQueryResults(params.maxResults || 100, agent);
-
-        case 'get-query-errors':
-          return this._getQueryErrors(agent);
 
         case 'get-query-status':
           return this._getQueryStatus(agent);
@@ -674,6 +657,29 @@ Query inserted:
     _getQueryResults: function (maxResults, agent) {
       const self = this;
 
+      // Check for errors first
+      const lastError = this.queryUI.lastError;
+      if (lastError) {
+        let text = 'Query execution error detected:\n\n';
+        text += 'Error: ' + (lastError.message || lastError.toString()) + '\n\n';
+        text += 'Common causes:\n';
+        text += '- Missing SPARQL prefixes (e.g., PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>)\n';
+        text += '- Syntax errors in the SPARQL query\n';
+        text += '- Invalid URIs or property names\n';
+        text += '- Incorrect datasource configuration\n\n';
+        text += 'Please review the query syntax and try again. You can insert a corrected query using the insert-query tool.';
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: text,
+            },
+          ],
+          isError: true,
+        };
+      }
+
       // Check if results are available
       if (!this.queryUI.lastResults) {
         return {
@@ -733,42 +739,6 @@ Query inserted:
       else
         text = 'Query completed with unknown result type: ' + queryType;
 
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: text,
-          },
-        ],
-      };
-    },
-
-    /**
-     * Tool implementation: Get query errors
-     */
-    _getQueryErrors: function (agent) {
-      const lastError = this.queryUI.lastError;
-
-      if (!lastError) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: 'No errors detected. The last query executed successfully or no query has been executed yet.',
-            },
-          ],
-        };
-      }
-
-      let text = 'Query execution error detected:\n\n';
-      text += 'Error: ' + (lastError.message || lastError.toString()) + '\n\n';
-      text += 'Common causes:\n';
-      text += '- Missing SPARQL prefixes (e.g., PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>)\n';
-      text += '- Syntax errors in the SPARQL query\n';
-      text += '- Invalid URIs or property names\n';
-      text += '- Incorrect datasource configuration\n\n';
-      text += 'Please review the query syntax and try again. You can insert a corrected query using the insert-query tool.';
 
       return {
         content: [
