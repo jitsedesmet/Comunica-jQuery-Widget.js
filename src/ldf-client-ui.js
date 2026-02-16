@@ -83,10 +83,12 @@ if (typeof global.process === 'undefined')
 
     // Initialize WebMCP tools
     this.webMCPTools = new WebMCPTools(this);
-
     // Store query results for webMCP access
     this.lastResults = null;
+    // The query type of the last executed query.
     this.lastQueryType = null;
+    // Last error registered on query execution in
+    this.lastError = null;
   }
 
   LdfQueryUI.prototype = {

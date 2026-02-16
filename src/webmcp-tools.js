@@ -64,7 +64,8 @@
         // Tool 1: Change datasources
         {
           name: 'change-datasources',
-          description: 'Change the data sources for SPARQL queries. You can specify data source names (e.g., "DBpedia 2016-04", "Wikidata SPARQL") or custom URLs.',
+          description: 'Change the data sources for SPARQL queries.' +
+            'You can specify known data source names (e.g., "DBpedia 2016-04", "Wikidata SPARQL") or custom RDF sources providing their URLs.',
           inputSchema: {
             type: 'object',
             properties: {
@@ -103,7 +104,8 @@
         // Tool 3: Set bypass cache
         {
           name: 'set-bypass-cache',
-          description: 'Enable or disable cache bypassing. Use this when you notice stale or cached results, or when you need fresh data.',
+          description: 'Enable or disable cache bypassing.' +
+            'Should not be used by default, but cam be used when you notice stale or cached results, or when you need fresh data.',
           inputSchema: {
             type: 'object',
             properties: {
@@ -129,6 +131,16 @@
               format: {
                 type: 'string',
                 description: 'Media type for CONSTRUCT results (e.g., "text/turtle", "application/n-triples", "application/ld+json", "application/trig")',
+                enum: [
+                  'application/n-quads',
+                  'application/trig',
+                  'application/ld+json',
+                  'application/n-triples',
+                  'text/turtle',
+                  'text/n3',
+                  'text/shaclc',
+                  'text/shaclc-ext',
+                ],
               },
             },
             required: ['format'],
@@ -141,7 +153,7 @@
         // Tool 5: List datasources
         {
           name: 'get-datasources-list',
-          description: 'Get the complete list of available datasources from settings.json. Returns all configured datasource names and URLs.',
+          description: 'Get the complete list of well-known datasources. Returns all configured datasource known by name instead of URL.',
           inputSchema: {
             type: 'object',
             properties: {},
@@ -150,11 +162,10 @@
             return self._executeTool('get-datasources-list', {}, agent);
           },
         },
-
         // Tool 6: List and explain queries
         {
           name: 'list-queries',
-          description: 'List available example queries and explain what they do based on their titles and SPARQL content. Useful for discovering pre-made queries.',
+          description: 'List available example queries. Useful for discovering pre-made queries.',
           inputSchema: {
             type: 'object',
             properties: {
@@ -172,7 +183,9 @@
         // Tool 7: Insert query
         {
           name: 'insert-query',
-          description: 'Insert a SPARQL query into the query editor. Use this to suggest queries based on natural language requests. The query should be valid SPARQL syntax.',
+          description: 'Insert a SPARQL query into the query editor. ' +
+            'Use this to suggest queries based on natural language requests. ' +
+            'The query should be valid SPARQL syntax, meaning special care should be taken on PREFIX and BASE declarations.',
           inputSchema: {
             type: 'object',
             properties: {
@@ -191,11 +204,13 @@
             return self._executeTool('insert-query', { query, suggestDatasources }, agent);
           },
         },
-
         // Tool 8: Execute query
         {
           name: 'execute-query',
-          description: 'Execute the current SPARQL query. Make sure datasources are configured before executing.',
+          description: 'Execute the current SPARQL query. ' +
+            'Make sure datasource\'s are configured before executing. ' +
+            'After executing the query, you should verify no errors are immediately thrown (e.g. parser errors). ' +
+            'When an error is immediately thrown, try to fix it.',
           inputSchema: {
             type: 'object',
             properties: {},
@@ -208,7 +223,9 @@
         // Tool 9: Get query results
         {
           name: 'get-query-results',
-          description: 'Get the results from the most recent query execution. Returns results in a structured format with interpretation context.',
+          description: 'Get the results from the most recent query execution. ' +
+            'These can be used if the agent is tasked to explain the query result. ' +
+            'Results have a structured format. But the triples send are limited for bandwidth reasons.',
           inputSchema: {
             type: 'object',
             properties: {
@@ -222,11 +239,11 @@
             return self._executeTool('get-query-results', { maxResults }, agent);
           },
         },
-
         // Tool 10: Get query errors
         {
           name: 'get-query-errors',
-          description: 'Get any errors from the most recent query execution. Use this to detect and fix query problems like syntax errors, missing prefixes, or invalid SPARQL syntax.',
+          description: 'Get any errors from the most recent query execution. ' +
+            'Use this to detect and fix query problems like syntax errors, missing prefixes, or invalid SPARQL syntax.',
           inputSchema: {
             type: 'object',
             properties: {},
@@ -235,7 +252,6 @@
             return self._executeTool('get-query-errors', {}, agent);
           },
         },
-
         // Tool 11: Get query status
         {
           name: 'get-query-status',
@@ -308,7 +324,7 @@
     },
 
     /**
-     * Tool implementation: Change datasources
+     * Tool implementation: Change data sources
      */
     _changeDatasources: function (datasources, agent) {
       const availableDS = this.queryUI.options.datasources;
@@ -430,7 +446,7 @@
     },
 
     /**
-     * Tool implementation: Get datasources list
+     * Tool implementation: Get known data sources list
      */
     _getDatasourcesList: function (agent) {
       const datasources = this.queryUI.options.datasources;
@@ -440,14 +456,14 @@
           content: [
             {
               type: 'text',
-              text: 'No datasources available.',
+              text: 'No data sources available.',
             },
           ],
         };
       }
 
       // Build complete list of datasources
-      let text = 'Available datasources (' + datasources.length + ' total):\n\n';
+      let text = 'Available known data sources (' + datasources.length + ' total):\n\n';
 
       datasources.forEach(function (ds, index) {
         text += (index + 1) + '. ' + ds.name + '\n';
