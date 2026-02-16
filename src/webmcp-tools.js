@@ -681,6 +681,8 @@ Query inserted:
       }
 
       // Check if results are available
+      // Note: A successful query with 0 results will have lastResults = { variables: [...], bindings: [] }
+      // which is truthy, so this check only catches the case where no query has been executed yet.
       if (!this.queryUI.lastResults) {
         return {
           content: [
