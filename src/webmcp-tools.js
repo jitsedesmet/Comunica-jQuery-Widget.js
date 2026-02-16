@@ -557,7 +557,7 @@ Results have a structured format. But the triples send are limited for bandwidth
       }
 
       const message = `
-Query inserted into editor, to verify syntax, execute query and look whther no errors are present.
+Query inserted into editor, to verify syntax, execute query and look whether not errors are present.
 Query inserted:
 `.trim() + '\n\n' + query;
 
@@ -591,7 +591,7 @@ Query inserted:
           content: [
             {
               type: 'text',
-              text: 'Error: No datasources selected. Please select or add datasources before executing the query.',
+              text: 'Error: No data sources selected. Please select or add data sources before executing the query.',
             },
           ],
           isError: true,
@@ -643,7 +643,7 @@ Query inserted:
                     '- Missing SPARQL prefixes (e.g., PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>)\n' +
                     '- Syntax errors in the SPARQL query\n' +
                     '- Invalid URIs or property names\n\n' +
-                    'Please review the query syntax and fix the error.',
+                    'Please review the query syntax, fix the error, and insert and execute the revised query.',
             },
           ],
           isError: true,
@@ -799,6 +799,9 @@ You may repeatedly query the state of execution using the get-query-status tool.
      */
     _formatValue: function (value) {
       if (!value) return '';
+
+      if (typeof value === 'string')
+        return value;
 
       if (value.type === 'uri')
         return '<' + value.value + '>';
