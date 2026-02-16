@@ -64,15 +64,19 @@
         // Tool 1: Change datasources
         {
           name: 'change-datasources',
-          description: 'Change the data sources for SPARQL queries.' +
-            'You can specify known data source names (e.g., "DBpedia 2016-04", "Wikidata SPARQL") or custom RDF sources providing their URLs.',
+          description: `
+Change the data sources the SPARQL queries.
+You can specify known data source names (e.g., "DBpedia 2016-04", "Wikidata SPARQL") or custom RDF sources providing their URLs.
+`.trim(),
           inputSchema: {
             type: 'object',
             properties: {
               datasources: {
                 type: 'array',
                 items: { type: 'string' },
-                description: 'Array of datasource names or URLs to query. Use datasource names from the available list or provide custom URLs.',
+                description: `
+Array of datasource names or URLs to query. Use datasource names from the available list or provide custom URLs.
+`.trim(),
               },
             },
             required: ['datasources'],
@@ -85,7 +89,9 @@
         // Tool 2: Pick a date
         {
           name: 'set-datetime',
-          description: 'Set a specific date/time for temporal queries. This allows you to specify the result of the SPARQL `NOW()` operator.',
+          description: `
+Set a specific date/time for SPARQL queries. This allows you to specify the result of the SPARQL \`NOW()\` operator.
+`.trim(),
           inputSchema: {
             type: 'object',
             properties: {
@@ -104,8 +110,10 @@
         // Tool 3: Set bypass cache
         {
           name: 'set-bypass-cache',
-          description: 'Enable or disable cache bypassing.' +
-            'Should not be used by default, but cam be used when you notice stale or cached results, or when you need fresh data.',
+          description: `
+Enable or disable cache bypassing.
+Should not be used by default, but cam be used when you notice stale or cached results, or when you need fresh data.
+`.trim(),
           inputSchema: {
             type: 'object',
             properties: {
@@ -124,13 +132,15 @@
         // Tool 4: Change CONSTRUCT format
         {
           name: 'set-result-format',
-          description: 'Set the output format for CONSTRUCT queries (e.g., Turtle, N-Triples, JSON-LD, TriG).',
+          description: 'Set the output format for SPARQL CONSTRUCT queries.',
           inputSchema: {
             type: 'object',
             properties: {
               format: {
                 type: 'string',
-                description: 'Media type for CONSTRUCT results (e.g., "text/turtle", "application/n-triples", "application/ld+json", "application/trig")',
+                description: `
+Media type for CONSTRUCT results (e.g., "text/turtle", "application/n-triples", "application/ld+json", "application/trig")
+`.trim(),
                 enum: [
                   'application/n-quads',
                   'application/trig',
@@ -153,7 +163,9 @@
         // Tool 5: List datasources
         {
           name: 'get-datasources-list',
-          description: 'Get the complete list of well-known datasources. Returns all configured datasource known by name instead of URL.',
+          description: `
+Get the complete list of well-known data sources. Returns all configured datasource known by name instead of URL.
+`.trim(),
           inputSchema: {
             type: 'object',
             properties: {},
@@ -165,7 +177,7 @@
         // Tool 6: List and explain queries
         {
           name: 'list-queries',
-          description: 'List available example queries. Useful for discovering pre-made queries.',
+          description: 'List available example SPARQL queries. Useful for discovering pre-made queries.',
           inputSchema: {
             type: 'object',
             properties: {
@@ -183,9 +195,12 @@
         // Tool 7: Insert query
         {
           name: 'insert-query',
-          description: 'Insert a SPARQL query into the query editor. ' +
-            'Use this to suggest queries based on natural language requests. ' +
-            'The query should be valid SPARQL syntax, meaning special care should be taken on PREFIX and BASE declarations.',
+          description: `
+Insert a SPARQL query into the query editor.
+Use this to suggest queries based on natural language requests.
+The query should be valid SPARQL syntax, meaning special care should be taken on PREFIX and BASE declarations.
+However: errors on syntax are only listed after execution.
+`.trim(),
           inputSchema: {
             type: 'object',
             properties: {
@@ -207,10 +222,12 @@
         // Tool 8: Execute query
         {
           name: 'execute-query',
-          description: 'Execute the current SPARQL query. ' +
-            'Make sure datasource\'s are configured before executing. ' +
-            'After executing the query, you should verify no errors are immediately thrown (e.g. parser errors). ' +
-            'When an error is immediately thrown, try to fix it.',
+          description: `
+Execute the current SPARQL query. 
+Make sure datasource's are configured before executing.
+After executing the query, you should verify no errors are immediately thrown (e.g. parser errors).
+When an error is immediately thrown, try to fix it.\
+`.trim(),
           inputSchema: {
             type: 'object',
             properties: {},
@@ -223,9 +240,11 @@
         // Tool 9: Get query results
         {
           name: 'get-query-results',
-          description: 'Get the results from the most recent query execution. ' +
-            'These can be used if the agent is tasked to explain the query result. ' +
-            'Results have a structured format. But the triples send are limited for bandwidth reasons.',
+          description: `
+Get the results from the most recent query execution.
+These can be used if the agent is tasked to explain the query result.
+Results have a structured format. But the triples send are limited for bandwidth reasons.
+`.trim(),
           inputSchema: {
             type: 'object',
             properties: {
@@ -242,8 +261,10 @@
         // Tool 10: Get query errors
         {
           name: 'get-query-errors',
-          description: 'Get any errors from the most recent query execution. ' +
-            'Use this to detect and fix query problems like syntax errors, missing prefixes, or invalid SPARQL syntax.',
+          description: `
+Get any errors from the most recent query execution.
+Use this to detect and fix query problems like syntax errors, missing prefixes, or invalid SPARQL syntax.
+`.trim(),
           inputSchema: {
             type: 'object',
             properties: {},
