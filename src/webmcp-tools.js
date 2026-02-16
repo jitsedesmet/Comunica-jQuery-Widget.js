@@ -575,6 +575,15 @@ Query inserted:
      * Tool implementation: Execute query
      */
     _executeQuery: async function (agent) {
+      // Check if a query is currently running
+      const isRunning = this.queryUI.$start.is(':hidden');
+      if (isRunning) {
+        // Stop the currently running query
+        this.queryUI.$stop.click();
+        // Wait a bit for the query to stop
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+
       // Check if datasources are selected
       const datasources = this.queryUI.$datasources.val();
       if (!datasources || datasources.length === 0) {
