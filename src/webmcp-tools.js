@@ -645,7 +645,11 @@ Query inserted:
         content: [
           {
             type: 'text',
-            text: 'Query execution started successfully. Use get-query-results to retrieve results once the query completes.',
+            text: `
+Query execution started successfully.
+Use get-query-results to retrieve results once the query completes.
+You may repeatedly query the state of execution using the get-query-status tool.
+`.trim(),
           },
         ],
       };
