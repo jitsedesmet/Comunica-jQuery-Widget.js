@@ -221,8 +221,8 @@ Include helpful comments in the query (using # syntax) to explain what the query
           description: `
 Execute the current SPARQL query. 
 Make sure datasource's are configured before executing.
-After executing the query, you should verify no errors are immediately thrown (e.g. parser errors).
-When an error is immediately thrown, try to fix it.\
+This tool will wait 100ms after starting execution and return any immediate errors (e.g., parser errors, missing prefixes).
+If an error is detected, fix the query and try again.\
 `.trim(),
           inputSchema: {
             type: 'object',
@@ -591,7 +591,7 @@ Query inserted:
     /**
      * Tool implementation: Execute query
      */
-    _executeQuery: function (agent) {
+    _executeQuery: async function (agent) {
       // Check if datasources are selected
       const datasources = this.queryUI.$datasources.val();
       if (!datasources || datasources.length === 0) {
@@ -630,14 +630,39 @@ Query inserted:
         };
       }
 
+      // Clear previous error
+      this.queryUI.lastError = null;
+
       // Trigger execution
       this.queryUI.$start.click();
+
+      // Wait 100ms to catch immediate errors (e.g., parsing errors)
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check if an error occurred during initial execution
+      if (this.queryUI.lastError) {
+        const error = this.queryUI.lastError;
+        return {
+          content: [
+            {
+              type: 'text',
+              text: 'Query execution error: ' + (error.message || error.toString()) + '\n\n' +
+                    'Common causes:\n' +
+                    '- Missing SPARQL prefixes (e.g., PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>)\n' +
+                    '- Syntax errors in the SPARQL query\n' +
+                    '- Invalid URIs or property names\n\n' +
+                    'Please review the query syntax and fix the error.',
+            },
+          ],
+          isError: true,
+        };
+      }
 
       return {
         content: [
           {
             type: 'text',
-            text: 'Query execution started. Use get-query-results to retrieve results once the query completes.',
+            text: 'Query execution started successfully. Use get-query-results to retrieve results once the query completes.',
           },
         ],
       };
