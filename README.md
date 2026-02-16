@@ -16,24 +16,25 @@ The `@comunica/web-client-generator` allows this widget to be generated for any 
 
 This widget now includes **[WebMCP (Web Model Context Protocol)](https://github.com/webmachinelearning/webmcp)** support, a web-based implementation of the Model Context Protocol that enables AI agents to interact with web applications programmatically. When accessed in a browser that supports WebMCP (such as browsers with AI assistants), agents can:
 
-- **List datasources** - Get complete list of available SPARQL endpoints and data sources
-- **Change datasources** - Select or add custom SPARQL endpoints and data sources
+- **List datasources** - Get complete list of well-known datasources by name
+- **Change datasources** - Select known datasources or add custom RDF sources by URL
 - **Configure temporal queries** - Set specific dates to control SPARQL NOW() operator
-- **Manage caching** - Enable or disable cache bypassing for fresh results
+- **Manage caching** - Enable or disable cache bypassing when needed for fresh results
 - **Control output formats** - Change RDF serialization formats for CONSTRUCT queries
-- **Browse example queries** - List and explain pre-configured SPARQL queries
-- **Insert custom queries** - Generate and insert SPARQL queries from natural language
+- **Browse example queries** - List available pre-configured SPARQL queries
+- **Insert custom queries** - Generate and insert SPARQL queries with helpful comments from natural language
 - **Execute queries** - Trigger query execution programmatically
 - **Detect errors** - Get detailed error messages for failed queries to help fix mistakes
 - **Retrieve results** - Access query results with structured interpretation
 - **Monitor status** - Check query execution status and timing
 
 For example, an AI agent can handle complex tasks like: *"What are the movies starring both Brad Pitt and Leonardo DiCaprio?"* by automatically:
-1. Suggesting an appropriate SPARQL query
-2. Recommending suitable datasources (e.g., DBpedia, Wikidata)
-3. Executing the query
-4. Detecting and fixing any errors (like missing prefixes)
-5. Interpreting and explaining the results in natural language
+1. Discovering available datasources
+2. Suggesting an appropriate SPARQL query with helpful comments
+3. Detecting the needed datasources from the query context
+4. Executing the query
+5. Detecting and fixing any errors (like missing prefixes)
+6. Interpreting and explaining the results in natural language
 
 ### Example Agent Workflow
 
@@ -43,9 +44,13 @@ Here's a detailed example of how an AI agent would use the WebMCP tools:
 User: "Find movies starring both Brad Pitt and Leonardo DiCaprio using DBpedia"
 
 Agent actions:
-1. get-datasources-list - View all available datasources
+1. get-datasources-list - View all available well-known datasources
 
-2. insert-query - Insert SPARQL query:
+2. insert-query - Insert SPARQL query with comments:
+   # Find movies starring both Brad Pitt and Leonardo DiCaprio
+   PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>
+   PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+   
    SELECT ?movie ?title WHERE {
      ?movie dbpedia-owl:starring dbpedia:Brad_Pitt ;
             dbpedia-owl:starring dbpedia:Leonardo_DiCaprio ;

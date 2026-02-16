@@ -185,7 +185,8 @@
           name: 'insert-query',
           description: 'Insert a SPARQL query into the query editor. ' +
             'Use this to suggest queries based on natural language requests. ' +
-            'The query should be valid SPARQL syntax, meaning special care should be taken on PREFIX and BASE declarations.',
+            'The query should be valid SPARQL syntax, meaning special care should be taken on PREFIX and BASE declarations. ' +
+            'Include helpful comments in the query (using # syntax) to explain what the query does and make it more readable.',
           inputSchema: {
             type: 'object',
             properties: {
@@ -193,15 +194,11 @@
                 type: 'string',
                 description: 'The SPARQL query to insert into the editor',
               },
-              suggestDatasources: {
-                type: 'boolean',
-                description: 'If true, suggest appropriate datasources for this query',
-              },
             },
             required: ['query'],
           },
-          execute: function ({ query, suggestDatasources }, agent) {
-            return self._executeTool('insert-query', { query, suggestDatasources }, agent);
+          execute: function ({ query }, agent) {
+            return self._executeTool('insert-query', { query }, agent);
           },
         },
         // Tool 8: Execute query
@@ -292,7 +289,7 @@
           return this._listQueries(params.datasource, agent);
 
         case 'insert-query':
-          return this._insertQuery(params.query, params.suggestDatasources, agent);
+          return this._insertQuery(params.query, agent);
 
         case 'execute-query':
           return this._executeQuery(agent);
@@ -542,7 +539,7 @@
     /**
      * Tool implementation: Insert query
      */
-    _insertQuery: function (query, suggestDatasources, agent) {
+    _insertQuery: function (query, agent) {
       // Set the query text - use the current query format's text area
       const queryFormat = this.queryUI.options.queryFormat || 'sparql';
       const $queryText = this.queryUI.$queryTextsIndexed[queryFormat];
@@ -556,30 +553,7 @@
         }
       }
 
-      let message = 'Query inserted into editor:\n\n' + query;
-
-      // Suggest datasources if requested
-      if (suggestDatasources) {
-        // Simple heuristic: look for common datasource patterns
-        const suggestions = [];
-
-        if (query.toLowerCase().indexOf('dbpedia') !== -1)
-          suggestions.push('DBpedia SPARQL');
-
-        if (query.toLowerCase().indexOf('wikidata') !== -1 || query.toLowerCase().indexOf('wdt:') !== -1)
-          suggestions.push('Wikidata SPARQL');
-
-        if (query.toLowerCase().indexOf('foaf') !== -1 || query.toLowerCase().indexOf('solid') !== -1)
-          suggestions.push('A personal Solid pod URL');
-
-
-        if (suggestions.length > 0) {
-          message += '\n\nSuggested datasources for this query: ' + suggestions.join(', ');
-          message += '\nUse the change-datasources tool to set them.';
-        }
-        else
-          message += '\n\nNo specific datasources suggested. You may need to configure appropriate datasources for this query.';
-      }
+      const message = 'Query inserted into editor:\n\n' + query;
 
       return {
         content: [
