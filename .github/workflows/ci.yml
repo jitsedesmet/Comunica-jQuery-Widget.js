@@ -68,7 +68,7 @@ jobs:
       - run: yarn run build
 
   deploy:
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/copilot/implement-webmcp-support'
     needs: build
     runs-on: ubuntu-latest
     steps:
