@@ -124,7 +124,7 @@ Set a specific date/time for SPARQL queries. This allows you to specify the resu
           title: 'Set Bypass Cache',
           description: `
 Enable or disable cache bypassing.
-Should not be used by default, but cam be used when you notice stale or cached results, or when you need fresh data.
+Should not be used by default, but can be used when you notice stale or cached results, or when you need fresh data.
 `.trim(),
           inputSchema: {
             type: 'object',
