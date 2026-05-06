@@ -9,6 +9,7 @@
   function WebMCPTools(queryUI) {
     this.queryUI = queryUI;
     this.toolsRegistered = false;
+    this._abortController = null;
   }
 
   WebMCPTools.prototype = {
@@ -32,9 +33,18 @@
         return false;
       }
 
+      // Unregister any previously registered tools before re-registering
+      if (this._abortController)
+        this._abortController.abort();
+
+      this._abortController = new AbortController();
+      const signal = this._abortController.signal;
+
       try {
         const tools = this._buildToolDefinitions();
-        window.navigator.modelContext.provideContext({ tools: tools });
+        tools.forEach(function (tool) {
+          window.navigator.modelContext.registerTool(tool, { signal: signal });
+        });
         this.toolsRegistered = true;
         // eslint-disable-next-line no-console
         console.log('WebMCP tools registered successfully:', tools.length, 'tools');
@@ -43,7 +53,6 @@
         const statusElement = document.getElementById('webmcp-status');
         if (statusElement)
           statusElement.style.display = 'block';
-
 
         return true;
       }
@@ -64,6 +73,7 @@
         // Tool 1: Change datasources
         {
           name: 'change-datasources',
+          title: 'Change Data Sources',
           description: `
 Change the data sources the SPARQL queries.
 You can specify known data source names (e.g., "DBpedia 2016-04", "Wikidata SPARQL") or custom RDF sources providing their URLs.
@@ -81,14 +91,15 @@ Array of datasource names or URLs to query. Use datasource names from the availa
             },
             required: ['datasources'],
           },
-          execute: function ({ datasources }, agent) {
-            return self._executeTool('change-datasources', { datasources }, agent);
+          execute: function ({ datasources }, client) {
+            return self._executeTool('change-datasources', { datasources }, client);
           },
         },
 
         // Tool 2: Pick a date
         {
           name: 'set-datetime',
+          title: 'Set Date/Time',
           description: `
 Set a specific date/time for SPARQL queries. This allows you to specify the result of the SPARQL \`NOW()\` operator.
 `.trim(),
@@ -102,17 +113,18 @@ Set a specific date/time for SPARQL queries. This allows you to specify the resu
             },
             required: ['datetime'],
           },
-          execute: function ({ datetime }, agent) {
-            return self._executeTool('set-datetime', { datetime }, agent);
+          execute: function ({ datetime }, client) {
+            return self._executeTool('set-datetime', { datetime }, client);
           },
         },
 
         // Tool 3: Set bypass cache
         {
           name: 'set-bypass-cache',
+          title: 'Set Bypass Cache',
           description: `
 Enable or disable cache bypassing.
-Should not be used by default, but cam be used when you notice stale or cached results, or when you need fresh data.
+Should not be used by default, but can be used when you notice stale or cached results, or when you need fresh data.
 `.trim(),
           inputSchema: {
             type: 'object',
@@ -124,14 +136,15 @@ Should not be used by default, but cam be used when you notice stale or cached r
             },
             required: ['bypass'],
           },
-          execute: function ({ bypass }, agent) {
-            return self._executeTool('set-bypass-cache', { bypass }, agent);
+          execute: function ({ bypass }, client) {
+            return self._executeTool('set-bypass-cache', { bypass }, client);
           },
         },
 
         // Tool 4: Change CONSTRUCT format
         {
           name: 'set-result-format',
+          title: 'Set Result Format',
           description: 'Set the output format for SPARQL CONSTRUCT queries.',
           inputSchema: {
             type: 'object',
@@ -155,14 +168,15 @@ Media type for CONSTRUCT results (e.g., "text/turtle", "application/n-triples", 
             },
             required: ['format'],
           },
-          execute: function ({ format }, agent) {
-            return self._executeTool('set-result-format', { format }, agent);
+          execute: function ({ format }, client) {
+            return self._executeTool('set-result-format', { format }, client);
           },
         },
 
         // Tool 5: List datasources
         {
           name: 'get-datasources-list',
+          title: 'Get Data Sources List',
           description: `
 Get the complete list of well-known data sources. Returns all configured datasource known by name instead of URL.
 `.trim(),
@@ -170,13 +184,15 @@ Get the complete list of well-known data sources. Returns all configured datasou
             type: 'object',
             properties: {},
           },
-          execute: function (params, agent) {
-            return self._executeTool('get-datasources-list', {}, agent);
+          annotations: { readOnlyHint: true },
+          execute: function (params, client) {
+            return self._executeTool('get-datasources-list', {}, client);
           },
         },
         // Tool 6: List and explain queries
         {
           name: 'list-queries',
+          title: 'List Example Queries',
           description: 'List available example SPARQL queries. Useful for discovering pre-made queries.',
           inputSchema: {
             type: 'object',
@@ -187,14 +203,16 @@ Get the complete list of well-known data sources. Returns all configured datasou
               },
             },
           },
-          execute: function ({ datasource }, agent) {
-            return self._executeTool('list-queries', { datasource }, agent);
+          annotations: { readOnlyHint: true },
+          execute: function ({ datasource }, client) {
+            return self._executeTool('list-queries', { datasource }, client);
           },
         },
 
         // Tool 7: Insert query
         {
           name: 'insert-query',
+          title: 'Insert SPARQL Query',
           description: `
 Insert a SPARQL query into the query editor.
 Use this to suggest queries based on natural language requests.
@@ -211,13 +229,14 @@ Include helpful comments in the query (using # syntax) to explain what the query
             },
             required: ['query'],
           },
-          execute: function ({ query }, agent) {
-            return self._executeTool('insert-query', { query }, agent);
+          execute: function ({ query }, client) {
+            return self._executeTool('insert-query', { query }, client);
           },
         },
         // Tool 8: Execute query
         {
           name: 'execute-query',
+          title: 'Execute SPARQL Query',
           description: `
 Execute the current SPARQL query. 
 Make sure datasource's are configured before executing.
@@ -228,14 +247,15 @@ If an error is detected, fix the query and try again.\
             type: 'object',
             properties: {},
           },
-          execute: function (params, agent) {
-            return self._executeTool('execute-query', {}, agent);
+          execute: function (params, client) {
+            return self._executeTool('execute-query', {}, client);
           },
         },
 
         // Tool 9: Get query results
         {
           name: 'get-query-results',
+          title: 'Get Query Results',
           description: `
 Get the results from the most recent query execution.
 If there are any errors from the query execution, they will be returned instead of results.
@@ -250,21 +270,24 @@ Results have a structured format. But the triples send are limited for bandwidth
               },
             },
           },
-          execute: function ({ maxResults }, agent) {
-            return self._executeTool('get-query-results', { maxResults }, agent);
+          annotations: { readOnlyHint: true },
+          execute: function ({ maxResults }, client) {
+            return self._executeTool('get-query-results', { maxResults }, client);
           },
         },
 
         // Tool 10: Get query status
         {
           name: 'get-query-status',
+          title: 'Get Query Status',
           description: 'Check if a query is currently running and get basic status information.',
           inputSchema: {
             type: 'object',
             properties: {},
           },
-          execute: function (params, agent) {
-            return self._executeTool('get-query-status', {}, agent);
+          annotations: { readOnlyHint: true },
+          execute: function (params, client) {
+            return self._executeTool('get-query-status', {}, client);
           },
         },
       ];
@@ -273,38 +296,38 @@ Results have a structured format. But the triples send are limited for bandwidth
     /**
      * Execute a specific tool
      */
-    _executeTool: function (toolName, params, agent) {
+    _executeTool: function (toolName, params, client) {
       try {
         switch (toolName) {
         case 'change-datasources':
-          return this._changeDatasources(params.datasources, agent);
+          return this._changeDatasources(params.datasources, client);
 
         case 'set-datetime':
-          return this._setDatetime(params.datetime, agent);
+          return this._setDatetime(params.datetime, client);
 
         case 'set-bypass-cache':
-          return this._setBypassCache(params.bypass, agent);
+          return this._setBypassCache(params.bypass, client);
 
         case 'set-result-format':
-          return this._setResultFormat(params.format, agent);
+          return this._setResultFormat(params.format, client);
 
         case 'get-datasources-list':
-          return this._getDatasourcesList(agent);
+          return this._getDatasourcesList(client);
 
         case 'list-queries':
-          return this._listQueries(params.datasource, agent);
+          return this._listQueries(params.datasource, client);
 
         case 'insert-query':
-          return this._insertQuery(params.query, agent);
+          return this._insertQuery(params.query, client);
 
         case 'execute-query':
-          return this._executeQuery(agent);
+          return this._executeQuery(client);
 
         case 'get-query-results':
-          return this._getQueryResults(params.maxResults || 100, agent);
+          return this._getQueryResults(params.maxResults || 100, client);
 
         case 'get-query-status':
-          return this._getQueryStatus(agent);
+          return this._getQueryStatus(client);
 
         default:
           throw new Error('Unknown tool: ' + toolName);
@@ -326,7 +349,7 @@ Results have a structured format. But the triples send are limited for bandwidth
     /**
      * Tool implementation: Change data sources
      */
-    _changeDatasources: function (datasources, agent) {
+    _changeDatasources: function (datasources, client) {
       const availableDS = this.queryUI.options.datasources;
       const $datasources = this.queryUI.$datasources;
 
@@ -375,7 +398,7 @@ Results have a structured format. But the triples send are limited for bandwidth
     /**
      * Tool implementation: Set datetime
      */
-    _setDatetime: function (datetime, agent) {
+    _setDatetime: function (datetime, client) {
       const $datetime = this.queryUI.$datetime;
       $datetime.val(datetime);
       $datetime.trigger('change');
@@ -393,7 +416,7 @@ Results have a structured format. But the triples send are limited for bandwidth
     /**
      * Tool implementation: Set bypass cache
      */
-    _setBypassCache: function (bypass, agent) {
+    _setBypassCache: function (bypass, client) {
       const $bypassCache = this.queryUI.$bypassCache;
       $bypassCache.prop('checked', bypass);
       $bypassCache.trigger('change');
@@ -412,7 +435,7 @@ Results have a structured format. But the triples send are limited for bandwidth
     /**
      * Tool implementation: Set result format
      */
-    _setResultFormat: function (format, agent) {
+    _setResultFormat: function (format, client) {
       const $resultMediaType = this.queryUI.$resultMediaType;
 
       // Check if format is available
@@ -448,7 +471,7 @@ Results have a structured format. But the triples send are limited for bandwidth
     /**
      * Tool implementation: Get known data sources list
      */
-    _getDatasourcesList: function (agent) {
+    _getDatasourcesList: function (client) {
       const datasources = this.queryUI.options.datasources;
 
       if (!datasources || datasources.length === 0) {
@@ -483,7 +506,7 @@ Results have a structured format. But the triples send are limited for bandwidth
     /**
      * Tool implementation: List queries
      */
-    _listQueries: function (datasource, agent) {
+    _listQueries: function (datasource, client) {
       const queries = this.queryUI.options.queries;
 
       // Filter by datasource if specified
@@ -542,7 +565,7 @@ Results have a structured format. But the triples send are limited for bandwidth
     /**
      * Tool implementation: Insert query
      */
-    _insertQuery: function (query, agent) {
+    _insertQuery: function (query, client) {
       // Set the query text - use the current query format's text area
       const queryFormat = this.queryUI.options.queryFormat || 'sparql';
       const $queryText = this.queryUI.$queryTextsIndexed[queryFormat];
@@ -574,7 +597,7 @@ Query inserted:
     /**
      * Tool implementation: Execute query
      */
-    _executeQuery: async function (agent) {
+    _executeQuery: async function (client) {
       // Check if a query is currently running
       const isRunning = this.queryUI.$start.is(':hidden');
       if (isRunning) {
@@ -667,7 +690,7 @@ You may repeatedly query the state of execution using the get-query-status tool.
     /**
      * Tool implementation: Get query results
      */
-    _getQueryResults: function (maxResults, agent) {
+    _getQueryResults: function (maxResults, client) {
       const self = this;
 
       // Check for errors first
@@ -768,7 +791,7 @@ You may repeatedly query the state of execution using the get-query-status tool.
     /**
      * Tool implementation: Get query status
      */
-    _getQueryStatus: function (agent) {
+    _getQueryStatus: function (client) {
       const isRunning = this.queryUI.$start.is(':hidden');
       const executionTime = this.queryUI.$timing.text();
 
